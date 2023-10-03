@@ -19,7 +19,7 @@ This function will be used in the "initializeMQ" function to declare specific qu
 ```
 (import mq from mq-lib/mq)
 func declareQueues(ch *amqp091.Channel) (mq.MQQueues, error) {
-	// Setup Timesheets queue
+	// Setup Example queue
 	q, err := ch.QueueDeclare(
 		"example", // name
 		true,         // durable
