@@ -3,7 +3,7 @@
 This is a pretty high-level AMQP091 wrapper. It primarily helps with **getting things setup**, **insights into service connection health**, and **autonomous reconnections**. This package also helps in reducing the chances of creating *infinite loops*, which if not handled properly, are rather easy to do with the AMQP package by-default.
 
 This is still pretty early, and there are still some features I'd eventually like to add:
-- mainly: reconnect to a different server if/when one drops, however in my testing setup (Docker Swarm), it's already "being handled" (with about 10 million asterisks)
+- Mainly: Reconnect to a different server if/when one drops, however in my testing setup (Docker Swarm), it's already "being handled" (with about 10 million asterisks)
 - Built in deserialization (need a way to make this super versatile, thinking maps but not sure thats the way to go)
 - Built in rate limiting (basic rate limiting has been tested to be possible with `x/time/rate` if you'd like to BYO)
 - Exponential backoff delays during reconnections (w/ jitter + maximums)
@@ -58,7 +58,7 @@ Wherever you initialize your services, place the following code:
 
 ```
 mqServer := loadServiceURI("MQ", "amqp")
-mqVars, err := mq.InitializeMQ(mqServer, declareQueues, nil)
+mqVars, err := mq.InitializeMQ(mqServer, declareQueues, nil, nil)
 if err != nil {
 	panic(fmt.Sprintf("error starting RabbitMQ: %s", err))
 }
@@ -86,7 +86,7 @@ Now, modify your initialization code to be:
 health := &HealthCheck{}
 mqServer := loadServiceURI("MQ", "amqp")
 // Make sure to modify "nil" to "health"
-mqVars, err := mq.InitializeMQ(mqServer, declareQueues, health)
+mqVars, err := mq.InitializeMQ(mqServer, declareQueues, nil, health)
 if err != nil {
 	panic(fmt.Sprintf("error starting RabbitMQ: %s", err))
 }
@@ -157,5 +157,26 @@ mqVars.Listen(mq.ListenMOptions{
 })
 ```
 
-### Final Notes / Pitfalls
+### Defining Quality of Service (QoS)
+
+If needed, you can customize your QoS during initialization:
+
+```
+...
+qos := mq.QualityOfService{
+    PrefetchCount: 10
+	PrefetchSize:  0
+	Global:        false
+}
+mqVars, err := mq.InitializeMQ(mqServer, declareQueues, &qos, nil)
+...
+```
+
+## Built-in Multi-Channel Support
+
+For the current iteration of this library, I've chosen not to incorporate multi-channel support. The primary goal is to maintain a streamlined, easy-to-use interface while ensuring the library remains adaptable to various use cases. By limiting complexity, I aim to offer a more straightforward and versatile tool for developers.
+
+If you have a need for multiple channels, you can use `initializeMQ` as many times as you'd like :)
+
+## Final Notes / Pitfalls
 - It is **highly recommended** to have a health check system in place. A basic health system isn't too hard to implement, and without it, **there is one major indefinite loop: when you quit the program.** When the program gets quit without a health check in place, the `options.HandleEvents()` inside of `Listen()` will trigger indefinitely until the program has quit (which in testing, still causes a few hundred/thousand executions to occur). While no events will be triggered, the surrounding `for {}` will be triggered many many many times. **The easiest fix to this is implementing your health check, and setting RabbitMQ to DOWN before closing channels.**

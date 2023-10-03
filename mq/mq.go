@@ -16,6 +16,7 @@ type MQVariables struct {
 	CreateQueues DeclareMQQueuesFunc
 	Health       health.HealthCheck
 	connURI      string
+	qos          *QualityOfService
 }
 
 func (mq *MQVariables) Listen(options ListenMQOptions) {
@@ -39,7 +40,7 @@ func (mq *MQVariables) MonitorConnection() {
 			for {
 				// Attempt to reconnect with a delay
 				time.Sleep(reconnectDelay)
-				rmq, err := InitializeMQ(mq.connURI, mq.CreateQueues, mq.Health)
+				rmq, err := InitializeMQ(mq.connURI, mq.CreateQueues, mq.qos, mq.Health)
 				if err == nil {
 					fmt.Println("Successfully reconnected to RabbitMQ")
 					mq.Connection = rmq.Connection

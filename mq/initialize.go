@@ -11,12 +11,12 @@ import (
 type MQQueues map[string]*amqp091.Queue
 type DeclareMQQueuesFunc func(*amqp091.Channel) (MQQueues, error)
 
-func InitializeMQ(connURI string, declareQueues DeclareMQQueuesFunc, health health.HealthCheck) (*MQVariables, error) {
+func InitializeMQ(connURI string, declareQueues DeclareMQQueuesFunc, qos *QualityOfService, health health.HealthCheck) (*MQVariables, error) {
 	conn, err := amqp091.Dial(connURI)
 	if err != nil {
 		fmt.Println("Failed to connect to MQ. Trying again in 5 seconds..", err)
 		time.Sleep(5 * time.Second)
-		return InitializeMQ(connURI, declareQueues, health)
+		return InitializeMQ(connURI, declareQueues, qos, health)
 	}
 
 	ch, err := conn.Channel()
@@ -24,7 +24,15 @@ func InitializeMQ(connURI string, declareQueues DeclareMQQueuesFunc, health heal
 		return &MQVariables{}, fmt.Errorf("failed to open a channel")
 	}
 
-	err = ch.Qos(1, 0, false)
+	if qos == nil {
+		qos = &QualityOfService{
+			PrefetchCount: 0,
+			PrefetchSize:  0,
+			Global:        false,
+		}
+	}
+
+	err = ch.Qos(qos.PrefetchCount, qos.PrefetchSize, qos.Global)
 	if err != nil {
 		return &MQVariables{}, fmt.Errorf("failed to configure QoS")
 	}
@@ -43,5 +51,6 @@ func InitializeMQ(connURI string, declareQueues DeclareMQQueuesFunc, health heal
 		Reconnection: make(chan bool),
 		Health:       health,
 		connURI:      connURI,
+		qos:          qos,
 	}, nil
 }
