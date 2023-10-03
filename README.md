@@ -2,7 +2,13 @@
 
 This is a pretty high-level AMQP091 wrapper. It primarily helps with **getting things setup**, **insights into service connection health**, and **autonomous reconnections**. This package also helps in reducing the chances of creating *infinite loops*, which if not handled properly, are rather easy to do with the AMQP package by-default.
 
-This is still pretty early, and there are still some features I'd eventually like to add (mainly: reconnect to a different server if/when it drops), however in my testing setup (Docker Swarm), it's already "being handled" (with about 10 million asterisks). I'd also like to build in some deserialization and rate limiting, though for now, that is up to you (the developer) to handle (rate limiting has been tested to be possible with `/x/time/rate`).
+This is still pretty early, and there are still some features I'd eventually like to add:
+- mainly: reconnect to a different server if/when one drops, however in my testing setup (Docker Swarm), it's already "being handled" (with about 10 million asterisks)
+- Built in deserialization (need a way to make this super versatile, thinking maps but not sure thats the way to go)
+- Built in rate limiting (basic rate limiting has been tested to be possible with `x/time/rate` if you'd like to BYO)
+- Exponential backoff delays during reconnections (w/ jitter + maximums)
+
+For now, these are up to you (the developer) to handle.
 
 ## Quick Start Guide
 
