@@ -40,8 +40,8 @@ func listenOnMQ(vars *MQVariables, options ListenMQOptions) error {
 				}
 
 				fmt.Printf("RabbitMQ reconnected and cosumers setup.\n")
-				if vars.Health != nil {
-					vars.Health.SetRabbitStatus(true)
+				if vars.health != nil {
+					vars.health.SetRabbitStatus(true)
 				}
 
 				didReconnect <- true
@@ -60,8 +60,9 @@ func listenOnMQ(vars *MQVariables, options ListenMQOptions) error {
 				fmt.Println("Updating new points for the MQ..")
 				currentEvents = newEvents
 			default:
-				if vars.Health != nil && !vars.Health.GetRabbitStatus() {
+				if vars.health != nil && !vars.health.GetRabbitStatus() {
 					// don't cause an infinite loop if rmq is down.
+					fmt.Println("Waiting for reconnect..")
 					<-didReconnect
 				}
 				options.HandleEvents(currentEvents)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kvizdos/mq-lib/internal/health"
+	"github.com/Vizdos-Enterprises/mq-lib/internal/health"
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -14,7 +14,7 @@ type MQVariables struct {
 	Queues       map[string]*amqp091.Queue
 	Reconnection chan bool
 	CreateQueues DeclareMQQueuesFunc
-	Health       health.HealthCheck
+	health       health.HealthCheck
 	connURI      string
 	qos          *QualityOfService
 }
@@ -34,13 +34,13 @@ func (mq *MQVariables) MonitorConnection() {
 		err := <-closeCh
 		if err != nil {
 			fmt.Printf("Connection to RabbitMQ lost: %v. Reconnecting...\n", err)
-			if mq.Health != nil {
-				mq.Health.SetRabbitStatus(false)
+			if mq.health != nil {
+				mq.health.SetRabbitStatus(false)
 			}
 			for {
 				// Attempt to reconnect with a delay
 				time.Sleep(reconnectDelay)
-				rmq, err := InitializeMQ(mq.connURI, mq.CreateQueues, mq.qos, mq.Health)
+				rmq, err := InitializeMQ(mq.connURI, mq.CreateQueues, mq.qos, mq.health)
 				if err == nil {
 					fmt.Println("Successfully reconnected to RabbitMQ")
 					mq.Connection = rmq.Connection

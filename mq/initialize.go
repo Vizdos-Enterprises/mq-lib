@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kvizdos/mq-lib/internal/health"
+	"github.com/Vizdos-Enterprises/mq-lib/internal/health"
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -49,7 +49,7 @@ func InitializeMQ(connURI string, declareQueues DeclareMQQueuesFunc, qos *Qualit
 		Queues:       queues,
 		CreateQueues: declareQueues,
 		Reconnection: make(chan bool),
-		Health:       health,
+		health:       health,
 		connURI:      connURI,
 		qos:          qos,
 	}, nil
