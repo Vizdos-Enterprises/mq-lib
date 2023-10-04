@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Vizdos-Enterprises/mq-lib/internal/health"
+	"github.com/Vizdos-Enterprises/mq-lib/health"
 	"github.com/rabbitmq/amqp091-go"
 )
 
