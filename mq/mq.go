@@ -17,9 +17,11 @@ type MQVariables struct {
 	health       health.HealthCheck
 	connURI      string
 	qos          *QualityOfService
+	isConsuming  bool
 }
 
 func (mq *MQVariables) Listen(options ListenMQOptions) {
+	mq.isConsuming = true
 	listenOnMQ(mq, options)
 }
 
@@ -46,8 +48,12 @@ func (mq *MQVariables) MonitorConnection() {
 					mq.Connection = rmq.Connection
 					mq.Channel = rmq.Channel
 					mq.Queues = rmq.Queues
-					fmt.Println("Sending reconnection notice to MQ consumers..")
-					mq.Reconnection <- true
+					if mq.isConsuming {
+						fmt.Println("Sending reconnection notice to MQ consumers..")
+						mq.Reconnection <- true
+					} else {
+						mq.health.SetRabbitStatus(true)
+					}
 					// health.RabbitUp gets set to TRUE after reconnecting the consumers.
 					break
 				}
